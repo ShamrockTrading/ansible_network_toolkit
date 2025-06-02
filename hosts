@@ -1,0 +1,81 @@
+## CONFIG BACKUP REPOSITORY ##
+
+[repository]
+backup-server             ansible_host=10.10.128.29     ansible_user=       ansible_password=	ansible_become_password=
+
+## LOCATION GROUPINGS BELOW THIS LINE ##
+
+[9300]
+pn9300core                ansible_host=10.255.255.10                ansible_network_os=ios  
+pn9300edge01              ansible_host=10.255.255.4                 ansible_network_os=ios  
+pn9300edge02              ansible_host=10.255.255.5                 ansible_network_os=ios  
+
+[9350]
+ks-9350-metcalf-leaf1a    ansible_host=10.71.11.121                 ansible_network_os=nxos
+ks-9350-metcalf-leaf1b    ansible_host=10.71.11.122                 ansible_network_os=nxos
+ks-9350-metcalf-leaf2a    ansible_host=10.71.11.123                 ansible_network_os=nxos
+ks-9350-metcalf-leaf2b    ansible_host=10.71.11.124                 ansible_network_os=nxos
+ks-9350-metcalf-spine1    ansible_host=10.71.11.120                 ansible_network_os=nxos
+ks-9350metcalf-ext        ansible_host=10.71.11.125                 ansible_network_os=ios
+ks-9350metcalf-mds1       ansible_host=10.71.11.51                  ansible_network_os=nxos
+ks-9350metcalf-mds2       ansible_host=10.71.11.52                  ansible_network_os=nxos
+ks-9350Metcalf-OOB-R1     ansible_host=10.255.255.14                ansible_network_os=ios
+ks-9350Metcalf-OOB-R7     ansible_host=10.255.255.13                ansible_network_os=ios
+pn9350core                ansible_host=10.71.11.8                   ansible_network_os=ios
+pn9350edge01              ansible_host=10.255.255.2                 ansible_network_os=ios
+pn9350edge02              ansible_host=10.255.255.3                 ansible_network_os=ios
+
+[9325]
+ks-9325-metcalf-spine1    ansible_host=10.255.255.120               ansible_network_os=nxos        
+ks-9325metcalf-ext        ansible_host=10.255.255.253               ansible_network_os=ios  
+pn9325core                ansible_host=10.255.255.11                ansible_network_os=ios     
+
+[9345]
+ks-9345-metcalf-leaf1a    ansible_host=10.71.1.15                   ansible_network_os=nxos          
+ks-9345-metcalf-leaf1b    ansible_host=10.71.1.16                   ansible_network_os=nxos  
+
+[17501]
+ks-17501w98th-aws         ansible_host=10.71.10.16                  ansible_network_os=ios  
+ks-17501w98th-core1       ansible_host=10.71.10.10                  ansible_network_os=nxos  
+ks-17501w98th-core2       ansible_host=10.71.10.11                  ansible_network_os=nxos  
+ks-17501w98th-ext         ansible_host=10.71.10.13                  ansible_network_os=ios  
+ks-17501w98th-mds1        ansible_host=10.71.10.51                  ansible_network_os=nxos  
+ks-17501w98th-mds2        ansible_host=10.71.10.52                  ansible_network_os=nxos  
+ks-17501w98th-oob1        ansible_host=10.71.10.12                  ansible_network_os=ios  
+ks-17501w98th-oob2        ansible_host=10.71.10.251                 ansible_network_os=ios          
+                 
+
+## MODEL GROUPINGS BELOW THIS LINE ##
+
+[nxos]
+ks-9350-metcalf-leaf1a    ansible_host=10.71.11.121                 ansible_network_os=nxos
+ks-9350-metcalf-leaf1b    ansible_host=10.71.11.122                 ansible_network_os=nxos
+ks-9350-metcalf-leaf2a    ansible_host=10.71.11.123                 ansible_network_os=nxos
+ks-9350-metcalf-leaf2b    ansible_host=10.71.11.124                 ansible_network_os=nxos
+ks-9350-metcalf-spine1    ansible_host=10.71.11.120                 ansible_network_os=nxos
+ks-9350metcalf-mds1       ansible_host=10.71.11.51                  ansible_network_os=nxos
+ks-9350metcalf-mds2       ansible_host=10.71.11.52                  ansible_network_os=nxos
+ks-9325-metcalf-spine1    ansible_host=10.255.255.120               ansible_network_os=nxos
+ks-9345-metcalf-leaf1a    ansible_host=10.71.1.15                   ansible_network_os=nxos          
+ks-9345-metcalf-leaf1b    ansible_host=10.71.1.16                   ansible_network_os=nxos
+ks-17501w98th-core1       ansible_host=10.71.10.10                  ansible_network_os=nxos
+ks-17501w98th-core2       ansible_host=10.71.10.11                  ansible_network_os=nxos
+ks-17501w98th-mds1        ansible_host=10.71.10.51                  ansible_network_os=nxos
+ks-17501w98th-mds2        ansible_host=10.71.10.52                  ansible_network_os=nxos
+
+[ios]
+pn9300core                ansible_host=10.255.255.10                ansible_network_os=ios  
+pn9300edge01              ansible_host=10.255.255.4                 ansible_network_os=ios  
+pn9300edge02              ansible_host=10.255.255.5                 ansible_network_os=ios 
+ks-9350metcalf-ext        ansible_host=10.71.11.125                 ansible_network_os=ios
+ks-9350Metcalf-OOB-R1     ansible_host=10.255.255.14                ansible_network_os=ios
+ks-9350Metcalf-OOB-R7     ansible_host=10.255.255.13                ansible_network_os=ios
+pn9350core                ansible_host=10.71.11.8                   ansible_network_os=ios
+pn9350edge01              ansible_host=10.255.255.2                 ansible_network_os=ios
+pn9350edge02              ansible_host=10.255.255.3                 ansible_network_os=ios
+ks-9325metcalf-ext        ansible_host=10.255.255.253               ansible_network_os=ios  
+pn9325core                ansible_host=10.255.255.11                ansible_network_os=ios 
+ks-17501w98th-aws         ansible_host=10.71.10.16                  ansible_network_os=ios  
+ks-17501w98th-ext         ansible_host=10.71.10.13                  ansible_network_os=ios 
+ks-17501w98th-oob1        ansible_host=10.71.10.12                  ansible_network_os=ios  
+ks-17501w98th-oob2        ansible_host=10.71.10.251                 ansible_network_os=ios  
