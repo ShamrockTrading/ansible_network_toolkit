@@ -20,9 +20,7 @@
       ansible.builtin.file:
         path: N:\Network_Device_Config_Backups\
         state: directory
-        mode: "777"
       delegate_to: backup-server
-      become: true
       run_once: true
 
     - name: Save configuration to backup server
