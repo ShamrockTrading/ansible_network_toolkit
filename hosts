@@ -1,7 +1,7 @@
 ## CONFIG BACKUP REPOSITORY ##
 
 [repository]
-backup-server             ansible_host=10.71.12.41
+backup-server             ansible_host=10.71.12.41                  ansible_os_family=
 
 ## LOCATION GROUPINGS BELOW THIS LINE ##
 
