@@ -1,7 +1,7 @@
 ## CONFIG BACKUP REPOSITORY ##
 
 [repository]
-backup-server             ansible_host=10.10.128.29     ansible_user=       ansible_password=	ansible_become_password=
+backup-server             ansible_host=10.71.12.41
 
 ## LOCATION GROUPINGS BELOW THIS LINE ##
 
