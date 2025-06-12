@@ -26,7 +26,7 @@
     - name: Save configuration to backup server
       ansible.windows.win_copy:
         src: "{{ config_output.backup_path }}"
-        dest: "N:\Network_Device_Config_Backups {{ hostvars['backup-server'].datetime }}\"
+        dest: "N:\Network_Device_Config_Backups {{ hostvars['backup-server'].datetime }}/"
       when: config_output is defined
       delegate_to: backup-server
 
