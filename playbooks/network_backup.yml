@@ -21,6 +21,7 @@
         path: N:\Network_Device_Config_Backups\
         state: directory
       delegate_to: backup-server
+      become: true
       run_once: true
 
     - name: Save configuration to backup server
@@ -28,6 +29,7 @@
         src: "{{ config_output.backup_path }}"
         dest: "N:\Network_Device_Config_Backups {{ hostvars['backup-server'].datetime }}/"
       when: config_output is defined
+      become: true
       delegate_to: backup-server
 
 
