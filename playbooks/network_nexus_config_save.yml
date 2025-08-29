@@ -1,0 +1,12 @@
+---
+- name: Nightly Nexus Running Config Save
+  hosts: nxos
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    - name: Save config
+      cisco.nxos.nxos_config:
+       save_when: modified
+
+

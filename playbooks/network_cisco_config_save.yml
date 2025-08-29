@@ -1,0 +1,12 @@
+---
+- name: Nightly Cisco Running Config Save
+  hosts: all,!junos,!bigip,!nxos,!repository,!ovpjunostest,!sdwansrxonly
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    - name: Save config
+      cisco.ios.ios_config:
+       save_when: modified
+
+
