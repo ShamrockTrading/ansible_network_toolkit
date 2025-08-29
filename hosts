@@ -1,7 +1,7 @@
 ## CONFIG BACKUP REPOSITORY ##
 
 [repository]
-backup-server      ansible_host=pwradius01.RyanRTS.com      ansible_connection=winrm      ansible_port=5985      ansible_winrm_server_cert_validation: ignore
+backup-server      ansible_host=pwradius01.RyanRTS.com      ansible_connection=winrm      ansible_port=5985
 
 ## LOCATION GROUPINGS BELOW THIS LINE ##
 
