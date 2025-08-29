@@ -1,6 +1,6 @@
 ---
 - name: Nightly Cisco Running Config Save
-  hosts: all,!junos,!bigip,!nxos,!repository,!ovpjunostest,!sdwansrxonly
+  hosts: ios
   gather_facts: no
   connection: network_cli
 
