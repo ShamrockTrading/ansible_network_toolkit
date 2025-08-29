@@ -7,8 +7,6 @@ backup-server             ansible_host=pwradius01.RyanRTS.com       ansible_conn
 
 [9300]
 pn9300core                ansible_host=10.255.255.10                ansible_network_os=ios  
-pn9300edge01              ansible_host=10.255.255.4                 ansible_network_os=ios  
-pn9300edge02              ansible_host=10.255.255.5                 ansible_network_os=ios  
 
 [9350]
 ks-9350-metcalf-leaf1a    ansible_host=10.71.11.121                 ansible_network_os=nxos
@@ -22,8 +20,6 @@ ks-9350metcalf-mds2       ansible_host=10.71.11.52                  ansible_netw
 ks-9350Metcalf-OOB-R1     ansible_host=10.255.255.14                ansible_network_os=ios
 ks-9350Metcalf-OOB-R7     ansible_host=10.255.255.13                ansible_network_os=ios
 pn9350core                ansible_host=10.71.11.8                   ansible_network_os=ios
-pn9350edge01              ansible_host=10.255.255.2                 ansible_network_os=ios
-pn9350edge02              ansible_host=10.255.255.3                 ansible_network_os=ios
 
 [9325]
 ks-9325-metcalf-spine1    ansible_host=10.255.255.120               ansible_network_os=nxos        
@@ -65,14 +61,10 @@ ks-17501w98th-mds2        ansible_host=10.71.10.52                  ansible_netw
 
 [ios]
 pn9300core                ansible_host=10.255.255.10                ansible_network_os=ios  
-pn9300edge01              ansible_host=10.255.255.4                 ansible_network_os=ios  
-pn9300edge02              ansible_host=10.255.255.5                 ansible_network_os=ios 
 ks-9350metcalf-ext        ansible_host=10.71.11.125                 ansible_network_os=ios
 ks-9350Metcalf-OOB-R1     ansible_host=10.255.255.14                ansible_network_os=ios
 ks-9350Metcalf-OOB-R7     ansible_host=10.255.255.13                ansible_network_os=ios
 pn9350core                ansible_host=10.71.11.8                   ansible_network_os=ios
-pn9350edge01              ansible_host=10.255.255.2                 ansible_network_os=ios
-pn9350edge02              ansible_host=10.255.255.3                 ansible_network_os=ios
 ks-9325metcalf-ext        ansible_host=10.255.255.253               ansible_network_os=ios  
 pn9325core                ansible_host=10.255.255.11                ansible_network_os=ios 
 ks-17501w98th-aws         ansible_host=10.71.10.16                  ansible_network_os=ios  
