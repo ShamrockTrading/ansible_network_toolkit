@@ -5,3 +5,5 @@ collections:
   - arista.eos
   - junipernetworks.junos
   - awx.awx
+  - paloaltonetworks.panos
+
