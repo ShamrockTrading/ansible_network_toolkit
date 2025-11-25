@@ -71,3 +71,6 @@ ks-17501w98th-aws         ansible_host=10.71.10.16                  ansible_netw
 ks-17501w98th-ext         ansible_host=10.71.10.13                  ansible_network_os=ios
 ks-17501w98th-oob1        ansible_host=10.71.10.12                  ansible_network_os=ios
 ks-17501w98th-oob2        ansible_host=10.71.10.251                 ansible_network_os=ios
+
+[panos]
+pnpanorama01              ansible_host=10.2.3.95                    ansible_network_os=panos
