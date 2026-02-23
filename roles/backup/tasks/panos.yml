@@ -2,13 +2,12 @@
 # Backup Palo Alto Panorama/PAN-OS configuration
 # Outputs: config_output.backup_path (for your win_copy step)
 
-- name: Ensure /tmp exists on controller (EE)
-  ansible.builtin.file:
-    path: /tmp
+- name: Create a unique temp directory for this backup
+  ansible.builtin.tempfile:
     state: directory
-    mode: "0755"
+    prefix: panos_backup_
+  register: panos_tmpdir
   delegate_to: localhost
-  run_once: true
 
 - name: Export Panorama running configuration (XML) to controller
   paloaltonetworks.panos.panos_export:
@@ -20,12 +19,11 @@
       username: "{{ lookup('env','PANORAMA_USERNAME') | default(omit) }}"
       password: "{{ lookup('env','PANORAMA_PASSWORD') | default(omit) }}"
       timeout: "{{ panos_timeout | default(60) }}"
-    to: "/tmp/{{ inventory_hostname }}.xml"
+    to: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
   delegate_to: localhost
   register: panos_export_result
 
-# Make the output path align with your existing play that expects config_output.backup_path
 - name: Expose backup path to the caller
   ansible.builtin.set_fact:
     config_output:
-      backup_path: "/tmp/{{ inventory_hostname }}.xml"
+      backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
