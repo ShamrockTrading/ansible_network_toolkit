@@ -10,7 +10,7 @@
   delegate_to: localhost
 
 # Pull the running configuration using the operational command API.
-# Requires pan-python/pan-os-python in your EE (which you now have).
+# Requires pan-python/pan-os-python in the EE.
 - name: Retrieve running configuration via operational command
   paloaltonetworks.panos.panos_op:
     ip_address: "{{ ansible_host | default(inventory_hostname) }}"
