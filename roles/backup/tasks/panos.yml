@@ -1,6 +1,6 @@
 ---
 # Backup Palo Alto Panorama/PAN-OS configuration without relying on panos_export schema.
-# Produces: config_output.backup_path (consumed by your win_copy task).
+# Produces: config_output.backup_path (consumed by the win_copy task).
 
 - name: Create a unique temp directory on the controller
   ansible.builtin.tempfile:
