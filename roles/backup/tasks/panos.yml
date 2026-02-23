@@ -1,22 +1,21 @@
 ---
-# Backup Palo Alto Panorama/PAN-OS configuration without relying on panos_export schema.
-# Produces: config_output.backup_path (consumed by the win_copy task).
+# Backup Panorama running configuration
+# Outputs: config_output.backup_path
 
-- name: Create a unique temp directory on the controller
+- name: Create a unique temp directory for this backup
   ansible.builtin.tempfile:
     state: directory
     prefix: panos_backup_
   register: panos_tmpdir
   delegate_to: localhost
 
-# Pull the running configuration using the operational command API.
-# Requires pan-python/pan-os-python in the EE.
 - name: Retrieve running configuration via operational command
   paloaltonetworks.panos.panos_op:
-    ip_address: "{{ ansible_host | default(inventory_hostname) }}"
-    username: "{{ lookup('env','PANORAMA_USERNAME') | default(omit) }}"
-    password: "{{ lookup('env','PANORAMA_PASSWORD') | default(omit) }}"
-    api_key:  "{{ lookup('env','PANORAMA_API_KEY')  | default(omit) }}"
+    provider:
+      ip_address: "{{ ansible_host }}"
+      username: "{{ ansible_user }}"
+      password: "{{ ansible_password }}"
+      port: 443
     cmd: "show config running"
   delegate_to: localhost
   register: panos_config
@@ -28,7 +27,7 @@
     mode: "0640"
   delegate_to: localhost
 
-- name: Expose backup path for downstream win_copy
+- name: Expose backup path
   ansible.builtin.set_fact:
     config_output:
       backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
