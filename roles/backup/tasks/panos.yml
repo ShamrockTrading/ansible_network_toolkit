@@ -1,29 +1,32 @@
 ---
-# Backup Palo Alto Panorama/PAN-OS configuration
-# Outputs: config_output.backup_path (for your win_copy step)
+# Backup Palo Alto Panorama/PAN-OS configuration (module-version agnostic)
+# Produces: config_output.backup_path
 
-- name: Create a unique temp directory for this backup
+- name: Create a unique temp directory on the controller
   ansible.builtin.tempfile:
     state: directory
     prefix: panos_backup_
   register: panos_tmpdir
   delegate_to: localhost
 
-- name: Export Panorama running configuration (XML) to controller
-  paloaltonetworks.panos.panos_export:
-    category: "configuration"
-    running_config: true
-    provider:
-      hostname: "{{ ansible_host | default(inventory_hostname) }}"
-      api_key: "{{ lookup('env','PANORAMA_API_KEY') | default(omit) }}"
-      username: "{{ lookup('env','PANORAMA_USERNAME') | default(omit) }}"
-      password: "{{ lookup('env','PANORAMA_PASSWORD') | default(omit) }}"
-      timeout: "{{ panos_timeout | default(60) }}"
-    to: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+- name: Retrieve running configuration via operational command
+  paloaltonetworks.panos.panos_op:
+    ip_address: "{{ ansible_host | default(inventory_hostname) }}"
+    username: "{{ lookup('env','PANORAMA_USERNAME') | default(omit) }}"
+    password: "{{ lookup('env','PANORAMA_PASSWORD') | default(omit) }}"
+    api_key:  "{{ lookup('env','PANORAMA_API_KEY')  | default(omit) }}"
+    cmd: "show config running"
   delegate_to: localhost
-  register: panos_export_result
+  register: panos_config
 
-- name: Expose backup path to the caller
+- name: Write configuration to file
+  ansible.builtin.copy:
+    content: "{{ panos_config.stdout }}"
+    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+    mode: "0640"
+  delegate_to: localhost
+
+- name: Expose backup path for downstream win_copy
   ansible.builtin.set_fact:
     config_output:
       backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
