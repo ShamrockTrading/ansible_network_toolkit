@@ -1,6 +1,6 @@
 ---
-# Backup Palo Alto Panorama/PAN-OS configuration (module-version agnostic)
-# Produces: config_output.backup_path
+# Backup Palo Alto Panorama/PAN-OS configuration WITHOUT panos_* modules.
+# Produces: config_output.backup_path for your existing win_copy step.
 
 - name: Create a unique temp directory on the controller
   ansible.builtin.tempfile:
@@ -9,19 +9,60 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-- name: Retrieve running configuration via operational command
-  paloaltonetworks.panos.panos_op:
-    ip_address: "{{ ansible_host | default(inventory_hostname) }}"
-    username: "{{ lookup('env','PANORAMA_USERNAME') | default(omit) }}"
-    password: "{{ lookup('env','PANORAMA_PASSWORD') | default(omit) }}"
-    api_key:  "{{ lookup('env','PANORAMA_API_KEY')  | default(omit) }}"
-    cmd: "show config running"
+# If an API key isn't provided via env, optionally generate one from username/password.
+# You can remove this block if you always supply PANORAMA_API_KEY in AWX.
+- name: Check for API key in environment
+  ansible.builtin.set_fact:
+    __pan_api_key: "{{ lookup('env', 'PANORAMA_API_KEY') | default('', true) }}"
   delegate_to: localhost
-  register: panos_config
+
+- name: Generate API key from username/password (if needed)
+  when: __pan_api_key | length == 0
+  block:
+    - name: Ensure we have creds to generate key
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'PANORAMA_USERNAME') | length > 0
+          - lookup('env', 'PANORAMA_PASSWORD') | length > 0
+        fail_msg: >-
+          PANORAMA_API_KEY not set and PANORAMA_USERNAME/PANORAMA_PASSWORD not provided.
+          Provide an API key or credentials via AWX.
+      delegate_to: localhost
+
+    - name: Request API key from Panorama
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host | default(inventory_hostname) }}/api/?type=keygen&user={{ lookup('env','PANORAMA_USERNAME') | urlencode }}&password={{ lookup('env','PANORAMA_PASSWORD') | urlencode }}"
+        method: GET
+        return_content: true
+        validate_certs: "{{ panos_validate_certs | default(true) }}"
+      register: keygen_resp
+      delegate_to: localhost
+
+    - name: Parse key from XML response
+      ansible.builtin.set_fact:
+        __pan_api_key: "{{ (keygen_resp.content | regex_search('<key>([^<]+)</key>', '\\1')) | default('') }}"
+      delegate_to: localhost
+
+    - name: Ensure API key was obtained
+      ansible.builtin.assert:
+        that:
+          - __pan_api_key | length > 0
+        fail_msg: "Failed to obtain API key from Panorama."
+      delegate_to: localhost
+
+- name: Download running configuration XML via Panorama API
+  ansible.builtin.uri:
+    url: >-
+      https://{{ ansible_host | default(inventory_hostname) }}/api/?type=op&cmd=<show><config><running></running></config></show>&key={{ __pan_api_key | urlencode }}
+    method: GET
+    return_content: true
+    validate_certs: "{{ panos_validate_certs | default(true) }}"
+  register: run_cfg_resp
+  delegate_to: localhost
 
 - name: Write configuration to file
   ansible.builtin.copy:
-    content: "{{ panos_config.stdout }}"
+    content: "{{ run_cfg_resp.content }}"
     dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
     mode: "0640"
   delegate_to: localhost
