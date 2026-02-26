@@ -80,3 +80,12 @@
 - name: Remove raw XML
   ansible.builtin.file:
     path: "{{ panos_raw_file.dest }}"
+    state: absent
+  when: not (panos_keep_raw | default(true) | bool)
+  delegate_to: localhost
+
+# 8) Expose formatted backup path to the caller
+- name: Expose backup path
+  ansible.builtin.set_fact:
+    config_output:
+      backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
