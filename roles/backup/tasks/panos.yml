@@ -20,14 +20,14 @@
   delegate_to: localhost
   register: panos_config
 
-- name: Write configuration to file
+- name: Write raw XML to temp file
   ansible.builtin.copy:
     content: "{{ panos_config.stdout }}"
-    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.raw.xml"
     mode: "0640"
   delegate_to: localhost
 
-- name: Pretty print the XML using Ansible's xml filter
+- name: Pretty print the XML config
   ansible.builtin.copy:
     dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
     content: "{{ panos_config.stdout | to_xml(pretty_print=True) }}"
