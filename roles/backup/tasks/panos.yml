@@ -1,5 +1,9 @@
 ---
 # Backup Panorama running configuration (XML API + xmllint)
+# Outputs: config_output.backup_path
+
+# 0) If your EE doesn't trust Panorama's cert, leave this false (or set at inventory/job level)
+# panos_validate_certs: false
 
 # 1) Create unique temp directory
 - name: Create a unique temp directory for this backup
@@ -9,57 +13,61 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-# 2) Generate API key
+# 2) Request API key using params (no '&' in URL)
 - name: Request Panorama API key (keygen)
   ansible.builtin.uri:
-    url: "https://{{ ansible_host }}/api/?type=keygen&user={{ ansible_user | urlencode }}&password={{ ansible_password | urlencode }}"
+    url: "https://{{ ansible_host }}/api/"
     method: GET
+    params:
+      type: keygen
+      user: "{{ ansible_user }}"
+      password: "{{ ansible_password }}"
     return_content: true
-    validate_certs: false
+    validate_certs: "{{ panos_validate_certs | default(false) }}"
     use_proxy: false
-    headers:
-      Host: "{{ ansible_host }}"
   register: pan_keygen
   delegate_to: localhost
 
-- name: Extract API key
+- name: Extract API key from keygen response
   ansible.builtin.set_fact:
     pan_api_key: "{{ (pan_keygen.content | regex_search('<key>([^<]+)</key>', '\\1')) | default('') }}"
   delegate_to: localhost
 
-- name: Ensure API key obtained
+- name: Ensure API key retrieved
   ansible.builtin.assert:
     that:
       - pan_api_key | length > 0
-    fail_msg: "Failed to obtain Panorama API key."
+    fail_msg: "Failed to obtain API key from Panorama. Check username/password, reachability, and cert validation."
   delegate_to: localhost
 
 # 3) Build XML op command
-- name: Build XML op command
+- name: Define XML op command
   ansible.builtin.set_fact:
     pan_cmd_xml: "<show><config><running></running></config></show>"
   delegate_to: localhost
 
-# 4) Download running config (XML)
+# 4) Download running configuration (always XML) using params
 - name: Download Panorama running configuration (XML)
   ansible.builtin.uri:
-    url: "https://{{ ansible_host }}/api/?type=op&cmd={{ pan_cmd_xml | urlencode }}&key={{ pan_api_key | urlencode }}"
+    url: "https://{{ ansible_host }}/api/"
     method: GET
+    params:
+      type: op
+      cmd: "{{ pan_cmd_xml }}"
+      key: "{{ pan_api_key }}"
     return_content: true
-    validate_certs: false
+    validate_certs: "{{ panos_validate_certs | default(false) }}"
     use_proxy: false
-    headers:
-      Host: "{{ ansible_host }}"
   register: pan_run_cfg
   delegate_to: localhost
 
-# 5) Ensure XML (not JSON)
+# 5) Guardrail — ensure XML (not JSON)
 - name: Ensure response is XML (not JSON)
   ansible.builtin.assert:
     that:
       - pan_run_cfg.content is defined
       - not (pan_run_cfg.content | regex_search('^\\s*\\{'))
-    fail_msg: "Panorama returned JSON instead of XML."
+    fail_msg: "Panorama returned JSON instead of XML. Check the op parameters."
   delegate_to: localhost
 
 # 6) Write RAW XML
@@ -71,14 +79,14 @@
   delegate_to: localhost
   register: panos_raw_file
 
-# 7) Pretty-print XML
+# 7) Pretty‑print XML via xmllint (present in your EE)
 - name: Pretty print XML via xmllint
   ansible.builtin.command: >
     xmllint --format "{{ panos_raw_file.dest }}"
     -o "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
   delegate_to: localhost
 
-# 8) Optional RAW removal
+# 8) Optional — remove raw file (toggle with panos_keep_raw: false)
 - name: Remove raw XML
   ansible.builtin.file:
     path: "{{ panos_raw_file.dest }}"
@@ -86,7 +94,7 @@
   when: not (panos_keep_raw | default(true))
   delegate_to: localhost
 
-# 9) Expose final path
+# 9) Expose final path (for your win_copy step)
 - name: Expose backup path
   ansible.builtin.set_fact:
     config_output:
