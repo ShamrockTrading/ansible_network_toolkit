@@ -9,7 +9,7 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-# 2) Generate API key (NO SPACES, NO &amp; ENTITIES)
+# 2) Generate API key
 - name: Request Panorama API key (keygen)
   ansible.builtin.uri:
     url: "https://{{ ansible_host }}/api/?type=keygen&user={{ ansible_user | urlencode }}&password={{ ansible_password | urlencode }}"
@@ -40,7 +40,7 @@
     pan_cmd_xml: "<show><config><running></running></config></show>"
   delegate_to: localhost
 
-# 4) Download running config (XML) — NO SPACES, NO &amp; ENTITIES
+# 4) Download running config (XML)
 - name: Download Panorama running configuration (XML)
   ansible.builtin.uri:
     url: "https://{{ ansible_host }}/api/?type=op&cmd={{ pan_cmd_xml | urlencode }}&key={{ pan_api_key | urlencode }}"
@@ -53,12 +53,12 @@
   register: pan_run_cfg
   delegate_to: localhost
 
-# 5) Guardrail — ensure XML (not JSON)
+# 5) Ensure XML (not JSON)
 - name: Ensure response is XML (not JSON)
   ansible.builtin.assert:
     that:
       - pan_run_cfg.content is defined
-      - (pan_run_cfg.content | regex_search('^\\s*\\{')) is not truthy
+      - not (pan_run_cfg.content | regex_search('^\\s*\\{'))
     fail_msg: "Panorama returned JSON instead of XML."
   delegate_to: localhost
 
@@ -71,14 +71,14 @@
   delegate_to: localhost
   register: panos_raw_file
 
-# 7) Pretty‑print XML using xmllint
+# 7) Pretty-print XML
 - name: Pretty print XML via xmllint
   ansible.builtin.command: >
     xmllint --format "{{ panos_raw_file.dest }}"
     -o "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
   delegate_to: localhost
 
-# 8) Optionally remove raw file
+# 8) Optional RAW removal
 - name: Remove raw XML
   ansible.builtin.file:
     path: "{{ panos_raw_file.dest }}"
@@ -86,7 +86,7 @@
   when: not (panos_keep_raw | default(true))
   delegate_to: localhost
 
-# 9) Expose backup path
+# 9) Expose final path
 - name: Expose backup path
   ansible.builtin.set_fact:
     config_output:
