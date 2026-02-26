@@ -2,7 +2,7 @@
 # Backup Panorama running configuration
 # Outputs: config_output.backup_path
 
-# 1. Create unique temp directory
+# 1) Create unique temp directory
 - name: Create a unique temp directory for this backup
   ansible.builtin.tempfile:
     state: directory
@@ -10,20 +10,33 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-# 2. Retrieve running configuration (forced XML output)
-- name: Retrieve running configuration via operational command (XML)
+# 2) Retrieve running configuration as XML (supported across module versions)
+#    NOTE: We send the XML command and set cmd_is_xml: true
+- name: Retrieve running configuration (force XML response)
   paloaltonetworks.panos.panos_op:
     provider:
       ip_address: "{{ ansible_host }}"
       username: "{{ ansible_user }}"
       password: "{{ ansible_password }}"
       port: 443
-    cmd: "show config running"
-    format: "xml"
+    cmd: "<show><config><running></running></config></show>"
+    cmd_is_xml: true
   delegate_to: localhost
   register: panos_config
 
-# 3. Write raw XML
+# 3) Guardrail: ensure the payload is XML, not JSON
+- name: Assert response is XML (not JSON)
+  ansible.builtin.assert:
+    that:
+      - panos_config is defined
+      - (panos_config.stdout | default('')) | length > 0
+      - not (panos_config.stdout | regex_search('^\\s*\\{'))   # starts with '{' => JSON
+    fail_msg: >-
+      Panorama returned non-XML content for 'show config running'.
+      Ensure cmd_is_xml is true and the XML form of the command is used.
+  delegate_to: localhost
+
+# 4) Write RAW XML (keep a pristine copy if you want)
 - name: Write raw XML to file
   ansible.builtin.copy:
     content: "{{ panos_config.stdout }}"
@@ -32,14 +45,14 @@
   delegate_to: localhost
   register: panos_raw_file
 
-# 4. Pretty‑print XML via xmllint
+# 5) Pretty‑print XML via xmllint
 - name: Pretty print XML via xmllint
   ansible.builtin.command: >
     xmllint --format "{{ panos_raw_file.dest }}"
     -o "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
   delegate_to: localhost
 
-# 5. Optionally remove raw file
+# 6) Optionally remove the RAW file (toggle with panos_keep_raw=false)
 - name: Remove raw XML
   ansible.builtin.file:
     path: "{{ panos_raw_file.dest }}"
@@ -47,8 +60,9 @@
   when: not (panos_keep_raw | default(true) | bool)
   delegate_to: localhost
 
-# 6. Expose formatted backup path
+# 7) Expose the formatted file for your Windows copy step
 - name: Expose backup path
   ansible.builtin.set_fact:
     config_output:
       backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+``
