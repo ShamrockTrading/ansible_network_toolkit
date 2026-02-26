@@ -47,7 +47,7 @@
     url: "https://{{ ansible_host }}/api/?type=op&cmd={{ pan_cmd_xml | urlencode }}&key={{ pan_api_key | urlencode }}"
     method: GET
     return_content: true
-    validate_certs: "{{ panos_validate_certs | default(true) }}"
+    validate_certs: "{{ panos_validate_certs | default(false) }}"
   register: pan_run_cfg
   delegate_to: localhost
 
