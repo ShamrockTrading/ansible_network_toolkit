@@ -27,6 +27,13 @@
     mode: "0640"
   delegate_to: localhost
 
+- name: Pretty print the XML using Ansible's xml filter
+  ansible.builtin.copy:
+    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+    content: "{{ panos_config.stdout | to_xml(pretty_print=True) }}"
+    mode: "0640"
+  delegate_to: localhost
+
 - name: Expose backup path
   ansible.builtin.set_fact:
     config_output:
