@@ -1,7 +1,8 @@
 ---
-# Backup Panorama running configuration
-# Outputs: config_output.backup_path
+# Backup Palo Alto Panorama/PAN-OS configuration
+# Produces: config_output.backup_path (consumed by win_copy step)
 
+# 1) Unique temp directory and timestamp
 - name: Create a unique temp directory for this backup
   ansible.builtin.tempfile:
     state: directory
@@ -9,32 +10,111 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-- name: Retrieve running configuration via operational command
+- name: Generate timestamp for filename
+  ansible.builtin.set_fact:
+    panos_ts: "{{ lookup('pipe', 'date +%Y-%m-%d_%H-%M-%S') }}"
+  delegate_to: localhost
+
+# 2) Quick TCP probe so we fail fast if 443 is blocked
+- name: TCP reachability to Panorama:443
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host | default(inventory_hostname) }}"
+    port: "{{ panos_port | default(443) }}"
+    timeout: "{{ panos_tcp_timeout | default(5) }}"
+  delegate_to: localhost
+
+# 3) Optional probe (helpful for clear error messages)
+- name: Probe Panorama (show system info) with proxy bypass
   paloaltonetworks.panos.panos_op:
     provider:
-      ip_address: "{{ ansible_host }}"
+      ip_address: "{{ ansible_host | default(inventory_hostname) }}"
       username: "{{ ansible_user }}"
       password: "{{ ansible_password }}"
-      port: 443
+      port: "{{ panos_port | default(443) }}"
+    cmd: "show system info"
+  environment:
+    https_proxy: ""
+    http_proxy: ""
+    no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
+  delegate_to: localhost
+  register: panos_probe
+  changed_when: false
+
+# 4) Retrieve the running configuration (raw one-liner XML)
+- name: Retrieve running configuration
+  paloaltonetworks.panos.panos_op:
+    provider:
+      ip_address: "{{ ansible_host | default(inventory_hostname) }}"
+      username: "{{ ansible_user }}"
+      password: "{{ ansible_password }}"
+      port: "{{ panos_port | default(443) }}"
     cmd: "show config running"
+  environment:
+    https_proxy: ""
+    http_proxy: ""
+    no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
   delegate_to: localhost
   register: panos_config
 
-- name: Write raw XML to temp file
+# 5) Write RAW XML (keep a pristine copy; optional later removal)
+- name: Write raw Panorama XML to file
   ansible.builtin.copy:
     content: "{{ panos_config.stdout }}"
-    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.raw.xml"
+    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}-{{ panos_ts }}.raw.xml"
     mode: "0640"
   delegate_to: localhost
+  register: panos_raw_file
 
-- name: Pretty print the XML config
-  ansible.builtin.copy:
-    dest: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
-    content: "{{ panos_config.stdout | to_xml(pretty_print=True) }}"
-    mode: "0640"
+# 6) Pretty-print the XML (prefer xmllint, else Python fallback)
+- name: Check for xmllint
+  ansible.builtin.command: which xmllint
+  register: _xmllint
+  changed_when: false
+  failed_when: false
   delegate_to: localhost
 
-- name: Expose backup path
+- name: Pretty print XML via xmllint
+  ansible.builtin.command: >
+    xmllint --format "{{ panos_raw_file.dest }}"
+    -o "{{ panos_tmpdir.path }}/{{ inventory_hostname }}-{{ panos_ts }}.xml"
+  when: _xmllint.rc == 0
+  delegate_to: localhost
+
+- name: Pretty print XML via Python fallback
+  ansible.builtin.shell: |
+    set -e
+    in="{{ panos_raw_file.dest }}"
+    out="{{ panos_tmpdir.path }}/{{ inventory_hostname }}-{{ panos_ts }}.xml"
+    python3 - <<'PY'
+    import sys
+    from xml.dom import minidom
+
+    in_path, out_path = sys.argv[1], sys.argv[2]
+    with open(in_path, 'rb') as f:
+        data = f.read()
+    dom = minidom.parseString(data)
+    pretty = dom.toprettyxml(indent="  ")
+    # Remove blank lines that minidom can introduce
+    lines = [line for line in pretty.splitlines() if line.strip()]
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(lines) + "\n")
+    PY
+    "{{ panos_raw_file.dest }}" "{{ panos_tmpdir.path }}/{{ inventory_hostname }}-{{ panos_ts }}.xml"
+  args:
+    executable: /bin/bash
+  when: _xmllint.rc != 0
+  delegate_to: localhost
+
+# 7) Optionally remove the raw file
+- name: Optionally remove raw XML
+  ansible.builtin.file:
+    path: "{{ panos_raw_file.dest }}"
+    state: absent
+  when: not (panos_keep_raw | default(true) | bool)
+  delegate_to: localhost
+
+# 8) Expose formatted file to the play (win_copy will use this)
+- name: Expose formatted backup path
   ansible.builtin.set_fact:
     config_output:
-      backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
+      backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}-{{ panos_ts }}.xml"
