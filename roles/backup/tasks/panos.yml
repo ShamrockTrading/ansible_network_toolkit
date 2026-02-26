@@ -65,4 +65,3 @@
   ansible.builtin.set_fact:
     config_output:
       backup_path: "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
-``
