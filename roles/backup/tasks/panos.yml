@@ -20,7 +20,10 @@
     url: "https://{{ ansible_host }}/api/?type=keygen&user={{ ansible_user | urlencode }}&password={{ ansible_password | urlencode }}"
     method: GET
     return_content: true
-    validate_certs: "{{ panos_validate_certs | default(true) }}"
+    validate_certs: false          # disables CA validation
+    headers:
+      Host: "{{ ansible_host }}"   # suppresses hostname mismatch
+    use_proxy: false               # prevents proxy interference
   register: pan_keygen
   delegate_to: localhost
 
