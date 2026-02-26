@@ -10,31 +10,26 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-# 2) Generate a temporary API key (using your Machine credential)
+# 2) Generate API key (no spaces in URL!)
 - name: Request Panorama API key (keygen)
   ansible.builtin.uri:
-    url: >-
-      https://{{ ansible_host }}/api/?type=keygen
-      &user={{ ansible_user | urlencode }}
-      &password={{ ansible_password | urlencode }}
+    url: "https://{{ ansible_host }}/api/?type=keygen&user={{ ansible_user | urlencode }}&password={{ ansible_password | urlencode }}"
     method: GET
     return_content: true
-    # If Panorama uses private CA and you don't have the CA in the EE trust,
-    # set panos_validate_certs=false at inventory/job vars.
-    validate_certs: "{{ panos_validate_certs | default(true) }}"
-  register: pan_keygen
+    validate_certs: "{{ panos_validate_certs | default(false) }}"
   delegate_to: localhost
+  register: pan_keygen
 
-- name: Extract API key from keygen response
+- name: Extract API key
   ansible.builtin.set_fact:
     pan_api_key: "{{ (pan_keygen.content | regex_search('<key>([^<]+)</key>', '\\1')) | default('') }}"
   delegate_to: localhost
 
-- name: Ensure API key retrieved
+- name: Ensure we got an API key
   ansible.builtin.assert:
     that:
       - pan_api_key | length > 0
-    fail_msg: "Failed to obtain API key from Panorama. Check username/password and connectivity."
+    fail_msg: "Failed to obtain Panorama API key"
   delegate_to: localhost
 
 # 3) Fetch running configuration (always XML)
