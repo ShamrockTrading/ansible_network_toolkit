@@ -10,7 +10,7 @@
   register: panos_tmpdir
   delegate_to: localhost
 
-# 2. Retrieve running configuration (force XML response)
+# 2. Retrieve running configuration (forced XML output)
 - name: Retrieve running configuration via operational command (XML)
   paloaltonetworks.panos.panos_op:
     provider:
@@ -18,8 +18,8 @@
       username: "{{ ansible_user }}"
       password: "{{ ansible_password }}"
       port: 443
-    cmd: "<show><config><running></running></config></show>"
-    cmd_is_xml: true
+    cmd: "show config running"
+    format: "xml"
   delegate_to: localhost
   register: panos_config
 
@@ -32,14 +32,14 @@
   delegate_to: localhost
   register: panos_raw_file
 
-# 4. Pretty‑print XML via xmllint (now available in your EE)
+# 4. Pretty‑print XML via xmllint
 - name: Pretty print XML via xmllint
   ansible.builtin.command: >
     xmllint --format "{{ panos_raw_file.dest }}"
     -o "{{ panos_tmpdir.path }}/{{ inventory_hostname }}.xml"
   delegate_to: localhost
 
-# 5. (Optional) Remove raw file
+# 5. Optionally remove raw file
 - name: Remove raw XML
   ansible.builtin.file:
     path: "{{ panos_raw_file.dest }}"
