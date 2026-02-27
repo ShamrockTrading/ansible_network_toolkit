@@ -1,5 +1,5 @@
 ---
-# Backup Panorama running configuration (XML API + xmllint)
+# Backup PaloAlto device running configuration (XML API + xmllint)
 # Outputs: config_output.backup_path
 
 # 1) Create temp directory
@@ -11,7 +11,7 @@
   delegate_to: localhost
 
 # 2) Request API key using POST + form-urlencoded body (SAFE for special chars)
-- name: Request Panorama API key (keygen)
+- name: Request API key (keygen)
   ansible.builtin.uri:
     url: "https://{{ ansible_host }}/api/"
     method: POST
@@ -21,19 +21,13 @@
       user: "{{ ansible_user }}"
       password: "{{ ansible_password }}"
     return_content: true
-    validate_certs: false        # set true once your EE trusts Panorama's CA/FQDN
+    validate_certs: false        # set true once EE trusts root CA
     use_proxy: false
     headers:
       Content-Type: "application/x-www-form-urlencoded"
   register: pan_keygen
   delegate_to: localhost
   no_log: true   # prevent secrets from appearing in job output
-
-# (Optional) Temporary debugging — remove or toggle when stable
-# - debug:
-#     var: pan_keygen.content
-#   no_log: true
-#   delegate_to: localhost
 
 - name: Extract API key
   ansible.builtin.set_fact:
@@ -45,7 +39,7 @@
   ansible.builtin.assert:
     that:
       - pan_api_key | length > 0
-    fail_msg: "Failed to obtain Panorama API key. Enable the temporary debug task above to inspect the XML error message."
+    fail_msg: "Failed to obtain API key. Enable the temporary debug task above to inspect the XML error message."
   delegate_to: localhost
   no_log: true
 
@@ -56,7 +50,7 @@
   delegate_to: localhost
 
 # 4) Download running config (XML) using POST + form-urlencoded body
-- name: Download Panorama running configuration (XML)
+- name: Download Palo device running configuration (XML)
   ansible.builtin.uri:
     url: "https://{{ ansible_host }}/api/"
     method: POST
@@ -79,7 +73,7 @@
     that:
       - pan_run_cfg.content is defined
       - not (pan_run_cfg.content | regex_search('^\\s*\\{'))
-    fail_msg: "Panorama returned JSON instead of XML. Check request body fields (type/op/cmd/key)."
+    fail_msg: "Palo device returned JSON instead of XML. Check request body fields (type/op/cmd/key)."
   delegate_to: localhost
 
 # 6) Write RAW XML
