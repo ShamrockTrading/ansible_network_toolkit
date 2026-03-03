@@ -1,6 +1,6 @@
 ---
 - name: Retrieve network configurations
-  hosts: panos,!repository
+  hosts: all,!repository
   gather_facts: false
 
   tasks:
