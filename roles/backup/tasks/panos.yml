@@ -27,13 +27,13 @@
       Content-Type: "application/x-www-form-urlencoded"
   register: pan_keygen
   delegate_to: localhost
-  no_log: true   # prevent secrets from appearing in job output
+  no_log: false   # prevent secrets from appearing in job output
 
 - name: Extract API key
   ansible.builtin.set_fact:
     pan_api_key: "{{ (pan_keygen.content | regex_search('<key>([^<]+)</key>', '\\1')) | default('') }}"
   delegate_to: localhost
-  no_log: true
+  no_log: false
 
 - name: Ensure API key obtained
   ansible.builtin.assert:
@@ -41,7 +41,7 @@
       - pan_api_key | length > 0
     fail_msg: "Failed to obtain API key. Enable the temporary debug task above to inspect the XML error message."
   delegate_to: localhost
-  no_log: true
+  no_log: false
 
 # 3) Define XML op command
 - name: Build XML op command
