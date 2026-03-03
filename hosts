@@ -76,5 +76,13 @@ ks-17501w98th-oob2        ansible_host=10.71.10.251                 ansible_netw
 pnpanorama01              ansible_host=10.2.3.95                    ansible_network_os=panos
 stc-9350-fw-01            ansible_host=10.71.11.6                   ansible_network_os=panos
 stc-9350-fw-02            ansible_host=10.71.11.7                   ansible_network_os=panos
+stc-9350-hubfw-01         ansible_host=10.71.11.18                  ansible_network_os=panos
 stc-le-fw-01              ansible_host=10.71.10.6                   ansible_network_os=panos
 stc-le-fw-02              ansible_host=10.71.10.7                   ansible_network_os=panos
+stc-le-hubfw-01           ansible_host=10.71.10.18                  ansible_network_os=panos
+pnpan10t                  ansible_host=10.17.1.6                    ansible_network_os=panos
+pnpan11t                  ansible_host=10.17.3.53                   ansible_network_os=panos
+pnpanusw21                ansible_host=10.19.1.6                    ansible_network_os=panos
+pnpanusw21                ansible_host=10.19.3.53                   ansible_network_os=panos
+stc-prod-security-fw01    ansible_host=10.16.0.4                    ansible_network_os=panos
+stc-prod-security-fw02    ansible_host=10.16.0.5                    ansible_network_os=panos
