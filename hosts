@@ -30,7 +30,7 @@ pn9325core                ansible_host=10.255.255.11                ansible_netw
 ks-9345-metcalf-leaf1a    ansible_host=10.71.1.15                   ansible_network_os=nxos          
 ks-9345-metcalf-leaf1b    ansible_host=10.71.1.16                   ansible_network_os=nxos  
 
-[17501]
+[lightedge]
 ks-17501w98th-aws         ansible_host=10.71.10.16                  ansible_network_os=ios  
 ks-17501w98th-core1       ansible_host=10.71.10.10                  ansible_network_os=nxos  
 ks-17501w98th-core2       ansible_host=10.71.10.11                  ansible_network_os=nxos  
